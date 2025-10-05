@@ -3,46 +3,35 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>تقييم الموظف — OCEAN (PDF عالي الجودة)</title>
+  <title>تقييم الموظف — OCEAN (نهائي)</title>
 
-  <!-- Tailwind (CDN) -->
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- خطوط -->
+  <!-- Cairo font -->
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-  <!-- أدوات التصدير -->
+  <!-- html2canvas + jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
-    html,body { height:100%; font-family: 'Cairo', sans-serif; background:#f3f6f9; color:#0b1220; -webkit-font-smoothing:antialiased; }
-    .paper { width: 800px; max-width:100%; } /* preview width on screen */
-    .card { background:#fff; border-radius:12px; box-shadow:0 8px 30px rgba(12,18,24,0.06); border:1px solid #e6eef6; }
-    label { font-weight:600; color:#0b1220; }
-    input[type="number"], input[type="text"], input[type="date"], textarea {
-      border:1px solid #e5eef6; padding:.5rem .6rem; border-radius:8px; background:#fff;
+    :root{
+      --ocean-1:#0369a1;
+      --ocean-2:#06b6d4;
+      --muted:#64748b;
     }
-    .small-muted { font-size:13px; color:#64748b; }
-    .btn-main { background: linear-gradient(90deg,#0284c7,#06b6d4); color:#fff; padding:.6rem .9rem; border-radius:10px; font-weight:700;}
-    .btn-ghost { background:#fff; border:1px solid #cfe9f5; padding:.5rem .8rem; border-radius:10px; color:#0369a1; }
-    /* result states */
-    .state-red { background:#ef4444; }
-    .state-amber { background:#f59e0b; }
-    .state-green { background:#10b981; }
-    .state-blue { background:#0ea5e9; }
-
-    /* print helpers */
-    @media print {
-      .no-print { display:none !important; }
-      body { background:#fff; }
-      .card { box-shadow:none; border:none; }
-    }
-
-    /* responsive preview scaling (small screens) */
-    .preview-wrap { display:flex; justify-content:center; padding:20px; }
-    @media (max-width:900px) { .paper { transform:scale(0.9); transform-origin:top center; } }
-    @media (max-width:520px) { .paper { transform:scale(0.75); } }
+    html,body{height:100%;font-family:'Cairo',sans-serif;background:#f7fafc;color:#071125;-webkit-font-smoothing:antialiased}
+    .paper{width:210mm;max-width:100%;} /* preview sized like A4 width */
+    .card{background:#fff;border-radius:12px;box-shadow:0 8px 30px rgba(7,17,34,0.06);border:1px solid #e6eef6}
+    label{font-weight:600;color:#071125}
+    input[type="number"], input[type="text"], input[type="date"], textarea{border:1px solid #e6eef6;padding:.5rem .6rem;border-radius:8px;background:#fff}
+    .small-muted{font-size:13px;color:var(--muted)}
+    .btn-primary{background:linear-gradient(90deg,var(--ocean-1),var(--ocean-2));color:#fff;padding:.6rem .9rem;border-radius:10px;font-weight:700}
+    .btn-ghost{background:#fff;border:1px solid #dbeafe;padding:.5rem .8rem;border-radius:10px;color:var(--ocean-1)}
+    @media print{.no-print{display:none !important} body{background:#fff} .card{box-shadow:none;border:none}}
+    .preview-wrap{display:flex;justify-content:center;padding:20px}
+    @media (max-width:900px){.paper{transform:scale(.9);transform-origin:top center}}
+    @media (max-width:520px){.paper{transform:scale(.78)}}
   </style>
 </head>
 <body class="py-8">
@@ -53,12 +42,12 @@
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 no-print">
       <div>
         <h1 class="text-2xl font-bold text-sky-700">نموذج تقييم الموظف — OCEAN</h1>
-        <!-- <p class="small-muted">نسخة رسمية قابلة للتصدير كـ PDF مطابق للشاشة (screenshot-style)</p> -->
+        <p class="small-muted">نسخة نهائية: تصدير PDF/JPG مطابق للشاشة بدقة طباعة</p>
       </div>
-
       <div class="flex gap-3">
-        <button id="btnCalc" class="btn-main">حساب التقييم</button>
+        <button id="btnCalc" class="btn-primary">حساب التقييم</button>
         <button id="btnExportPDF" class="btn-ghost"></button>
+        <button id="btnExportJPG" class="btn-ghost"></button>
         <button id="btnPrint" class="btn-ghost">طباعة</button>
       </div>
     </div>
@@ -69,7 +58,7 @@
         <!-- Header -->
         <header class="flex items-center justify-between mb-6">
           <div class="flex items-center gap-4">
-            <!-- ضع ملف الشعار بنفس اسم الملف في نفس المجلد -->
+            <!-- ضع ملف الشعار في نفس المجلد مع هذا الاسم أو غيّره -->
             <img id="logo" src="شعار اوشن.jpg" alt="OCEAN" class="w-20 h-20 object-contain">
             <div>
               <div class="text-sky-600 font-bold text-lg">OCEAN</div>
@@ -109,21 +98,21 @@
           <!-- Performance -->
           <div>
             <div class="flex items-center justify-between mb-2">
-              <div class="font-medium">أداء العمل <span class="small-muted">(الوزن 40%)</span></div>
+              <div class="font-medium">أداء العمل <span class="small-muted"></span></div>
               <div class="small-muted">قيم 1 - 5</div>
             </div>
             <div class="space-y-3">
-              <div><label class="small-muted block mb-1">جودة تنفيذ المهام</label><input class="rating performance" type="number" min="1" max="5"></div>
-              <div><label class="small-muted block mb-1">سرعة الإنجاز</label><input class="rating performance" type="number" min="1" max="5"></div>
+              <div><label class="small-muted block mb-1">جودة العمل </label><input class="rating performance" type="number" min="1" max="5"></div>
+              <div><label class="small-muted block mb-1">سرعة تنفيذ الطلبات </label><input class="rating performance" type="number" min="1" max="5"></div>
               <div><label class="small-muted block mb-1">الالتزام بالمواعيد</label><input class="rating performance" type="number" min="1" max="5"></div>
-              <div><label class="small-muted block mb-1">دقة وجودة المخرجات</label><input class="rating performance" type="number" min="1" max="5"></div>
+              <div><label class="small-muted block mb-1">دقة وجودة الجلسات </label><input class="rating performance" type="number" min="1" max="5"></div>
             </div>
           </div>
 
           <!-- Behavior + Appearance -->
           <div>
             <div class="mb-4">
-              <div class="flex items-center justify-between mb-2"><div class="font-medium">السلوك والالتزام <span class="small-muted">(الوزن 25%)</span></div><div class="small-muted">قيم 1 - 5</div></div>
+              <div class="flex items-center justify-between mb-2"><div class="font-medium">السلوك والالتزام <span class="small-muted"></span></div><div class="small-muted">قيم 1 - 5</div></div>
               <div class="space-y-2">
                 <div><label class="small-muted block mb-1">الالتزام بالحضور</label><input class="rating behavior" type="number" min="1" max="5"></div>
                 <div><label class="small-muted block mb-1">التعاون مع الزملاء</label><input class="rating behavior" type="number" min="1" max="5"></div>
@@ -132,7 +121,7 @@
             </div>
 
             <div>
-              <div class="flex items-center justify-between mb-2"><div class="font-medium">المظهر العام <span class="small-muted">(الوزن 15%)</span></div><div class="small-muted">قيم 1 - 5</div></div>
+              <div class="flex items-center justify-between mb-2"><div class="font-medium">المظهر العام <span class="small-muted"></span></div><div class="small-muted">قيم 1 - 5</div></div>
               <div class="space-y-2">
                 <div><label class="small-muted block mb-1">الانضباط الشخصي</label><input class="rating appearance" type="number" min="1" max="5"></div>
                 <div><label class="small-muted block mb-1">الالتزام بالمظهر</label><input class="rating appearance" type="number" min="1" max="5"></div>
@@ -141,10 +130,10 @@
           </div>
         </section>
 
-        <!-- Clients + Completion -->
+        <!-- Clients + Completion + Deficit -->
         <section class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
-            <div class="flex items-center justify-between mb-2"><div class="font-medium">التعامل مع العملاء <span class="small-muted">(الوزن 20%)</span></div><div class="small-muted">قيم 1 - 5</div></div>
+            <div class="flex items-center justify-between mb-2"><div class="font-medium">التعامل  علي واتساب <span class="small-muted"></span></div><div class="small-muted">قيم 1 - 5</div></div>
             <div class="space-y-2">
               <div><label class="small-muted block mb-1">أسلوب التواصل</label><input class="rating clients" type="number" min="1" max="5"></div>
               <div><label class="small-muted block mb-1">سرعة الاستجابة</label><input class="rating clients" type="number" min="1" max="5"></div>
@@ -153,14 +142,19 @@
           </div>
 
           <div>
-            <div class="mb-2"><label class="font-medium">الإنجاز خلال الأسبوع</label></div>
+            <!-- <div class="mb-2"><label class="font-medium">الإنجاز خلال الأسبوع</label></div>
             <div class="grid grid-cols-2 gap-3">
               <div><label class="small-muted block mb-1">عدد المهام المكلفة</label><input id="tasksAssigned" type="number" min="0"></div>
               <div><label class="small-muted block mb-1">عدد المهام المنجزة</label><input id="tasksDone" type="number" min="0"></div>
-            </div>
+            </div> -->
             <div class="mt-3">
-              <label class="small-muted block mb-1">أو أدخل نسبة الإنجاز (%) (ملاحظة: إن وُجدت تُستخدم بدل حساب من المهام)</label>
+              <label class="small-muted block mb-1">النسبة العامه للاداء الاسبوعي</label>
               <input id="completionPct" type="number" min="0" max="100" class="w-full" />
+            </div>
+
+            <div class="mt-3">
+              <label class="small-muted block mb-1">إجمالي العجز خلال جلسات الأسبوع (بالريال)</label>
+              <input id="deficit" type="number" min="0" placeholder="مثلاً 250" class="w-full" />
             </div>
 
             <div class="mt-3">
@@ -185,7 +179,7 @@
               </div>
             </div>
           </div>
-          <div class="mt-3 small-muted">ملاحظة: التحويل من 1→0% و 5→100%، ثم احتساب متوسط مرجح بالأوزان، ثم الضرب في نسبة الإنجاز.</div>
+          <div class="mt-3 small-muted"></div>
         </section>
 
         <hr class="border-gray-100 mb-4">
@@ -195,7 +189,7 @@
           <div class="flex-1">
             <div class="small-muted mb-1">توقيع التيم ليدر:</div>
             <div style="height:44px;width:100%;border-bottom:1px dashed #e2e8f0;margin-top:4px;"></div>
-            
+
             <div class="mt-3">
               <label for="leaderName" class="small-muted block mb-1">اسم التيم ليدر</label>
               <input id="leaderName" type="text" placeholder="أدخل اسمك هنا" class="w-full md:w-80 border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-sky-400">
@@ -208,16 +202,15 @@
           </div>
         </footer>
 
-
       </div> <!-- reportPaper -->
     </div> <!-- preview-wrap -->
   </div> <!-- container -->
 
 <script>
-/* ---------- Utility and settings ---------- */
+/* ======= Settings & Utilities ======= */
 const WEIGHTS = { perf:0.40, behavior:0.25, appearance:0.15, clients:0.20 };
 
-/* helper: convert rating 1..5 -> 0..100 (1 => 0, 5 => 100) */
+/* rating 1..5 => pct 0..100 */
 function ratingToPct(r){ return ((r - 1) / 4) * 100; }
 
 /* set dates */
@@ -225,133 +218,153 @@ const now = new Date();
 document.getElementById('headerDate').textContent = now.toLocaleDateString('ar-EG');
 document.getElementById('footerDate').textContent = now.toLocaleDateString('ar-EG');
 
-/* Read group ratings and validate */
-function readGroup(selector, groupName){
-  const elems = Array.from(document.querySelectorAll(selector));
-  if(elems.length === 0) return { avg: 0, pct: 0, count: 0 };
-  const vals = elems.map(e => {
+/* read group values and validate */
+function readGroup(selector, name){
+  const els = Array.from(document.querySelectorAll(selector));
+  if(els.length === 0) return { avg:0, pct:0 };
+  const vals = els.map(e => {
     const v = parseFloat(e.value);
-    if(Number.isNaN(v) || v < 1 || v > 5) throw new Error('الرجاء إدخال قيم صحيحة (1-5) في: ' + groupName);
+    if(Number.isNaN(v) || v < 1 || v > 5) throw new Error('الرجاء إدخال قيم صحيحة من 1 إلى 5 في: ' + name);
     return v;
   });
   const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
-  const pct = ratingToPct(avg);
-  return { avg, pct, count:vals.length };
+  return { avg, pct: ratingToPct(avg) };
 }
 
-/* compute final */
-function computeFinal(){
-  // read groups
+/* compute final score, apply deficit penalty */
+function computeFinal() {
   const perf = readGroup('.performance', 'أداء العمل');
   const behavior = readGroup('.behavior', 'السلوك');
   const appearance = readGroup('.appearance', 'المظهر');
   const clients = readGroup('.clients', 'التعامل مع العملاء');
 
-  // weighted before completion
-  const weighted = perf.pct * WEIGHTS.perf + behavior.pct * WEIGHTS.behavior + appearance.pct * WEIGHTS.appearance + clients.pct * WEIGHTS.clients;
+  // الوزن الكلي قبل احتساب الإنجاز
+  const weighted = (
+    perf.pct * WEIGHTS.perf +
+    behavior.pct * WEIGHTS.behavior +
+    appearance.pct * WEIGHTS.appearance +
+    clients.pct * WEIGHTS.clients
+  );
 
-  // completion
-  const completionPctField = document.getElementById('completionPct').value;
+  // احتساب نسبة الإنجاز
+  const completionField = document.getElementById('completionPct').value;
   let completion = null;
-  if(completionPctField !== '') {
-    completion = parseFloat(completionPctField);
-    if(Number.isNaN(completion) || completion < 0 || completion > 100) throw new Error('ادخل نسبة إنجاز صحيحة من 0 إلى 100');
+  if (completionField !== '') {
+    completion = parseFloat(completionField);
+    if (Number.isNaN(completion) || completion < 0 || completion > 100)
+      throw new Error('أدخل نسبة إنجاز صحيحة من 0 إلى 100');
   } else {
     const assigned = parseFloat(document.getElementById('tasksAssigned').value || '0');
     const done = parseFloat(document.getElementById('tasksDone').value || '0');
-    if(assigned > 0) completion = Math.max(0, Math.min(100, (done/assigned)*100));
-    else throw new Error('يرجى إدخال نسبة الإنجاز أو عدد المهام المكلفة والمنجزة.');
+    if (assigned > 0)
+      completion = Math.max(0, Math.min(100, (done / assigned) * 100));
+    else
+      throw new Error('الرجاء إدخال نسبة الإنجاز أو عدد المهام المكلفة والمنجزة.');
   }
 
-  const finalPct = Math.round(weighted * (completion / 100));
+  // النتيجة الأساسية قبل خصم العجز
+  const baseFinal = Math.round(weighted * (completion / 100));
 
-  // label mapping
+  // خصم العجز: كل 100 ريال = 1% خصم، بحد أقصى 20%
+  const deficit = parseFloat(document.getElementById('deficit').value || '0');
+  if (Number.isNaN(deficit) || deficit < 0)
+    throw new Error('الرجاء إدخال قيمة صحيحة للعجز');
+  const penaltyFraction = Math.min(0.20, deficit / 10000);
+  const finalAfterPenalty = Math.round(baseFinal * (1 - penaltyFraction));
+
+  // --- 🔍 تحليل التقييمات ---
+  const allRatings = Array.from(document.querySelectorAll('.rating'))
+    .map(e => parseFloat(e.value))
+    .filter(v => !Number.isNaN(v));
+
+  const midRatings = allRatings.filter(v => v >= 3 && v <= 4).length;
+  const midRatio = allRatings.length > 0 ? (midRatings / allRatings.length) : 0;
+
+  // --- 🧠 تحديد التصنيف ---
   let label = 'ضعيف', color = '#ef4444';
-  if(finalPct >= 95) { label='ممتاز'; color='#0ea5e9'; }
-  else if(finalPct >= 85) { label='جيد جدًا'; color='#10b981'; }
-  else if(finalPct >= 70) { label='جيد'; color='#f59e0b'; }
-  else { label='ضعيف'; color='#ef4444'; }
+  if (finalAfterPenalty >= 95) { label = 'ممتاز'; color = '#0ea5e9'; }
+  else if (finalAfterPenalty >= 85) { label = 'جيد جدًا'; color = '#10b981'; }
+  else if (finalAfterPenalty >= 70) { label = 'جيد'; color = '#f59e0b'; }
 
-  return { finalPct, label, color, weighted, completion };
+  // --- ⚠️ تطبيق شرط الـ 3 إلى 4 ---
+  // إذا كانت أغلب الأساسات أقل من 50% تقييمها بين 3 و4، يخفض التقييم إلى ضعيف
+  if (label === 'جيد' && midRatio < 0.5) {
+    label = 'ضعيف';
+    color = '#ef4444';
+  }
+
+  return {
+    final: finalAfterPenalty,
+    base: baseFinal,
+    label,
+    color,
+    penaltyPercent: Math.round(penaltyFraction * 100),
+    deficit
+  };
 }
 
-/* UI update after compute */
+
+/* UI update */
 document.getElementById('btnCalc').addEventListener('click', () => {
-  try {
-    const res = computeFinal();
-    document.getElementById('finalResult').textContent = res.finalPct + ' %';
-    document.getElementById('finalLabel').textContent = res.label;
+  try{
+    const r = computeFinal();
+    document.getElementById('finalResult').textContent = r.final + ' %';
+    document.getElementById('finalLabel').textContent = r.label + (r.penaltyPercent ? (' • خصم ' + r.penaltyPercent + '% بسبب عجز ' + r.deficit + ' ر.س') : '');
     const bar = document.getElementById('finalBar');
-    bar.style.width = res.finalPct + '%';
-    bar.style.background = res.color;
-  } catch (err) {
-    alert(err.message || 'خطأ في الحساب');
+    bar.style.width = r.final + '%';
+    bar.style.background = r.color;
+  } catch(e){
+    alert(e.message || 'خطأ في الحساب');
   }
 });
 
-/* ---------- High-quality PDF export (screenshot-like) ----------
-
-Strategy:
-- Render #reportPaper using html2canvas with high scale so the produced image
-  is high-resolution (target ~ A4 @ 300 DPI -> 2480 x 3508 px).
-- Wait for fonts to be ready (document.fonts.ready) to ensure text rendered correctly.
-- Use jsPDF and insert the generated image scaled to A4 mm.
-- This produces a PDF where the page looks exactly like the on-screen report (screenshot-like).
----------------------------------------------------------------*/
-
-async function renderHighResCanvas(element) {
-  // Wait fonts loaded (important)
-  if (document.fonts && document.fonts.ready) {
-    await document.fonts.ready;
-  }
+/* ===== High-res render & export (PDF / JPG) =====
+   Strategy:
+   - Render #reportPaper via html2canvas at high 'scale' to approach A4 @300DPI
+   - Wait for document.fonts.ready to ensure text is rasterized correctly
+   - For PDF: convert px->mm using 300 DPI and embed image into jsPDF A4
+   - For JPG: download the high-res JPEG dataURL
+*/
+async function renderHighRes(element){
+  if(document.fonts && document.fonts.ready) await document.fonts.ready;
 
   const rect = element.getBoundingClientRect();
-  const cssWidth = rect.width;
+  const cssW = rect.width;
 
-  const targetPxWidth = 2480; // A4 width @ 300 DPI
-  // compute scale
-  let scale = Math.max(1, Math.ceil(targetPxWidth / cssWidth));
-  // clamp scale to avoid memory issues
-  scale = Math.min(scale, 6);
+  const targetPxW = 2480; // A4 width @300dpi
+  let scale = Math.max(1, Math.ceil(targetPxW / cssW));
+  scale = Math.min(scale, 6); // clamp to avoid memory issues
 
-  const opts = {
-    scale: scale,
+  const canvas = await html2canvas(element, {
+    scale,
     useCORS: true,
     backgroundColor: '#ffffff',
     scrollY: -window.scrollY
-  };
-
-  const canvas = await html2canvas(element, opts);
+  });
   return canvas;
 }
 
 document.getElementById('btnExportPDF').addEventListener('click', async () => {
-  try {
-    // ensure computed
+  try{
+    // ensure calculation applied
     document.getElementById('btnCalc').click();
 
-    const element = document.getElementById('reportPaper');
-    const canvas = await renderHighResCanvas(element);
+    const elem = document.getElementById('reportPaper');
+    const canvas = await renderHighRes(elem);
 
-    // convert canvas to image
     const imgData = canvas.toDataURL('image/jpeg', 1.0);
-
-    // build PDF
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdf = new jsPDF('p','mm','a4');
 
-    // convert px to mm @300dpi: mm = px / 300 * 25.4
-    const pxWidth = canvas.width;
-    const pxHeight = canvas.height;
-    const widthMm = (pxWidth / 300) * 25.4;
-    const heightMm = (pxHeight / 300) * 25.4;
+    const pxW = canvas.width, pxH = canvas.height;
+    const widthMm = (pxW / 300) * 25.4;
+    const heightMm = (pxH / 300) * 25.4;
 
-    // center image on page; if height > page, fit to page height
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
-    let renderW = widthMm;
-    let renderH = heightMm;
-    if (renderH > pageH) {
+
+    let renderW = widthMm, renderH = heightMm;
+    if(renderH > pageH){
       const ratio = pageH / renderH;
       renderH = pageH;
       renderW = renderW * ratio;
@@ -360,14 +373,32 @@ document.getElementById('btnExportPDF').addEventListener('click', async () => {
     pdf.addImage(imgData, 'JPEG', x, 0, renderW, renderH, undefined, 'FAST');
     const filename = (document.getElementById('empName').value || 'تقييم_الموظف').replace(/\s+/g,'_') + '_OCEAN_Report.pdf';
     pdf.save(filename);
-
-  } catch (err) {
+  } catch(err){
     console.error(err);
-    alert('حدث خطأ أثناء إنشاء PDF: ' + (err.message || err));
+    alert('فشل تصدير PDF: ' + (err.message || err));
   }
 });
 
-/* quick print (opens print dialog) */
+document.getElementById('btnExportJPG').addEventListener('click', async () => {
+  try{
+    document.getElementById('btnCalc').click();
+    const elem = document.getElementById('reportPaper');
+    const canvas = await renderHighRes(elem);
+    const dataUrl = canvas.toDataURL('image/jpeg', 1.0);
+    const link = document.createElement('a');
+    const name = (document.getElementById('empName').value || 'تقييم_الموظف').replace(/\s+/g,'_') + '_OCEAN_300DPI.jpg';
+    link.href = dataUrl;
+    link.download = name;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch(err){
+    console.error(err);
+    alert('فشل تصدير JPG: ' + (err.message || err));
+  }
+});
+
+/* Print */
 document.getElementById('btnPrint').addEventListener('click', () => {
   document.getElementById('btnCalc').click();
   window.print();
